@@ -13,8 +13,7 @@ WARNING:
 -- Create the 'DataWarehouse' database
 CREATE DATABASE DataWarehouse;
 
---use the database you just created
-USE DataWareHouse;
+--use the database you just created and then run the scripts below
 
 -- Create Schemas
 CREATE SCHEMA bronze;
