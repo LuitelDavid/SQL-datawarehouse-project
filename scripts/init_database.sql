@@ -3,20 +3,18 @@
 Create Database and Schemas in postgresql 
 =============================================================
 Script Purpose:
-    This script creates a new database named 'DataWarehouse' after checking if it already exists. 
-    If the database exists, it is dropped and recreated. Additionally, the script sets up three schemas 
-    within the database: 'bronze', 'silver', and 'gold'.
+    This script creates a new database named 'DataWarehouse'. 
+    The script sets up three schemas within the database: 'bronze', 'silver', and 'gold'.
 	
 WARNING:
-    Running this script will drop the entire 'DataWarehouse' database if it exists. 
-    All data in the database will be permanently deleted. Proceed with caution 
-    and ensure you have proper backups before running this script.
-
 	The code may not run in other databases.
 */
 
 -- Create the 'DataWarehouse' database
 CREATE DATABASE DataWarehouse;
+
+--use the database you just created
+USE DataWareHouse;
 
 -- Create Schemas
 CREATE SCHEMA bronze;
