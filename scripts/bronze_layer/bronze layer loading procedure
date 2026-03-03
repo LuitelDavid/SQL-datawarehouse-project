@@ -1,0 +1,98 @@
+CALL bronze.load_bronze();
+-- create the procedure first and then call the procedure to load the data into the bronze layer tables.
+-- Note: Update the file paths in the COPY statements to point to the correct locations of your CSV files before executing the procedure.
+CREATE OR REPLACE PROCEDURE bronze.load_bronze()
+LANGUAGE plpgsql
+AS $$
+BEGIN
+
+    RAISE NOTICE 'Starting Bronze Layer Load...';
+
+    -- CRM Customer Info
+    RAISE NOTICE 'Loading crm_cust_info...';
+    TRUNCATE TABLE bronze.crm_cust_info;
+
+    COPY bronze.crm_cust_info
+    (cst_id,cst_key,cst_firstname,cst_lastname,
+     cst_marital_status,cst_gndr,cst_create_date)
+    FROM 'Path of cust_info.csv'										--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'crm_cust_info loaded successfully.';
+
+
+    -- CRM Product Info
+    RAISE NOTICE 'Loading crm_prd_info...';
+    TRUNCATE TABLE bronze.crm_prd_info;
+
+    COPY bronze.crm_prd_info
+    (prd_id,prd_key,prd_nm,prd_cost,prd_line,prd_start_dt,prd_end_dt)
+    FROM 'Path of prd_info.csv'											--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'crm_prd_info loaded successfully.';
+
+
+    -- Sales Details
+    RAISE NOTICE 'Loading crm_sales_details...';
+    TRUNCATE TABLE bronze.crm_sales_details;
+
+    COPY bronze.crm_sales_details
+    (sls_ord_num,sls_prd_key,sls_cust_id,sls_order_dt,
+     sls_ship_dt,sls_due_dt,sls_sales,sls_quantity,sls_price)
+    FROM 'Path of sales_details.csv'									--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'crm_sales_details loaded successfully.';
+
+
+    -- ERP Customer
+    RAISE NOTICE 'Loading erp_cust_az12...';
+    TRUNCATE TABLE bronze.erp_cust_az12;
+
+    COPY bronze.erp_cust_az12
+    (CID,BDATE,GEN)
+    FROM 'Path of CUST_AZ12.csv'										--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'erp_cust_az12 loaded successfully.';
+
+
+    -- ERP Location
+    RAISE NOTICE 'Loading erp_loc_a101...';
+    TRUNCATE TABLE bronze.erp_loc_a101;
+
+    COPY bronze.erp_loc_a101
+    (CID,CNTRY)
+    FROM 'Path of LOC_A101.csv'											--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'erp_loc_a101 loaded successfully.';
+
+
+    -- ERP Product Category
+    RAISE NOTICE 'Loading erp_px_cat_g1v2...';
+    TRUNCATE TABLE bronze.erp_px_cat_g1v2;
+
+    COPY bronze.erp_px_cat_g1v2
+    (ID,CAT,SUBCAT,MAINTENANCE)
+    FROM 'Path ofPX_CAT_G1V2.csv'										--change the path 
+    WITH (FORMAT csv, HEADER true);
+
+    RAISE NOTICE 'erp_px_cat_g1v2 loaded successfully.';
+
+    RAISE NOTICE 'Bronze Layer Load Completed Successfully.';
+
+EXCEPTION
+
+    WHEN undefined_file THEN
+        RAISE EXCEPTION 'File not found. Check CSV file path.';
+
+    WHEN insufficient_privilege THEN
+        RAISE EXCEPTION 'Permission denied. PostgreSQL cannot access the file.';
+
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Unexpected error: %', SQLERRM;
+
+END;
+$$;
