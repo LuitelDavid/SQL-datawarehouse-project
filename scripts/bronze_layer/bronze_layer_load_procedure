@@ -1,0 +1,168 @@
+-- Read the comments in the file and make the necessary changes before proceeding.
+CALL bronze.load_bronze();
+-- create the procedure first and then call the procedure to load the data into the bronze layer tables.
+-- Note: Update the file paths in the COPY statements to point to the correct locations of your CSV files before executing the procedure.
+CREATE OR REPLACE PROCEDURE bronze.load_bronze()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    load_start_time TIMESTAMP;
+    load_end_time TIMESTAMP;
+
+    table_start_time TIMESTAMP;
+    table_end_time TIMESTAMP;
+BEGIN
+
+    load_start_time := clock_timestamp();
+
+    RAISE NOTICE '=======================================';
+    RAISE NOTICE 'Starting Bronze Layer Load';
+    RAISE NOTICE '=======================================';
+
+    ----------------------------------------------------------------
+    -- crm_cust_info
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.crm_cust_info';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.crm_cust_info;
+
+    COPY bronze.crm_cust_info
+    (cst_id,cst_key,cst_firstname,cst_lastname,
+     cst_marital_status,cst_gndr,cst_create_date)
+    FROM '/tmp/cust_info.csv'                                      --- Update the file path to point to the correct location of your CSV file
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'crm_cust_info loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- crm_prd_info
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.crm_prd_info';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.crm_prd_info;
+
+    COPY bronze.crm_prd_info
+    (prd_id,prd_key,prd_nm,prd_cost,prd_line,prd_start_dt,prd_end_dt)
+    FROM '/tmp/prd_info.csv'                                     --- Update the file path to point to the correct location of your CSV file
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'crm_prd_info loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- crm_sales_details
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.crm_sales_details';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.crm_sales_details;
+
+    COPY bronze.crm_sales_details
+    (sls_ord_num,sls_prd_key,sls_cust_id,sls_order_dt,
+     sls_ship_dt,sls_due_dt,sls_sales,sls_quantity,sls_price)
+    FROM '/tmp/sales_details.csv'                                    --- Update the file path to point to the correct location of your CSV file
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'crm_sales_details loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- erp_cust_az12
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.erp_cust_az12';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.erp_cust_az12;
+
+    COPY bronze.erp_cust_az12
+    (CID,BDATE,GEN)
+    FROM '/tmp/CUST_AZ12.csv'                                              --- Update the file path to point to the correct location of your CSV file                               
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'erp_cust_az12 loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- erp_loc_a101
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.erp_loc_a101';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.erp_loc_a101;
+
+    COPY bronze.erp_loc_a101
+    (CID,CNTRY)
+    FROM '/tmp/LOC_A101.csv'                                                 --- Update the file path to point to the correct location of your CSV file
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'erp_loc_a101 loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- erp_px_cat_g1v2
+    ----------------------------------------------------------------
+
+    RAISE NOTICE 'Loading table: bronze.erp_px_cat_g1v2';
+
+    table_start_time := clock_timestamp();
+
+    TRUNCATE TABLE bronze.erp_px_cat_g1v2;
+
+    COPY bronze.erp_px_cat_g1v2
+    (ID,CAT,SUBCAT,MAINTENANCE)
+    FROM '/tmp/PX_CAT_G1V2.csv'                                             --- Update the file path to point to the correct location of your CSV file
+    WITH (FORMAT csv, HEADER true);
+
+    table_end_time := clock_timestamp();
+
+    RAISE NOTICE 'erp_px_cat_g1v2 loaded in % seconds',
+    EXTRACT(EPOCH FROM table_end_time - table_start_time);
+
+    ----------------------------------------------------------------
+    -- Total Execution Time
+    ----------------------------------------------------------------
+
+    load_end_time := clock_timestamp();
+
+    RAISE NOTICE '=======================================';
+    RAISE NOTICE 'Bronze Layer Load Completed';
+    RAISE NOTICE 'Total Load Time: % seconds',
+    EXTRACT(EPOCH FROM load_end_time - load_start_time);
+    RAISE NOTICE '=======================================';
+
+EXCEPTION
+
+    WHEN undefined_file THEN
+        RAISE EXCEPTION 'CSV file not found. Verify file path.';
+
+    WHEN insufficient_privilege THEN
+        RAISE EXCEPTION 'PostgreSQL does not have permission to read the file.';
+
+    WHEN OTHERS THEN
+        RAISE EXCEPTION 'Unexpected error: %', SQLERRM;
+
+END;
+$$;

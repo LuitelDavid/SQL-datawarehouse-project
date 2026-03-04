@@ -1,3 +1,18 @@
+/*
+This script creates the tables in the bronze layer of the data warehouse.
+The tables are created in the 'bronze' schema and are designed to hold raw data loaded from various sources.
+The tables include:
+
+- crm_cust_info: Contains customer information.
+- crm_prd_info: Contains product information.
+- crm_sales_details: Contains sales details.
+
+- erp_cust_az12: Contains customer information.
+- erp_loc_a101: Contains location information.
+- erp_px_cat_g1v2: Contains product category information.
+
+
+*/
 CREATE TABLE bronze.crm_cust_info 
 (
 	cst_id 					INT,
